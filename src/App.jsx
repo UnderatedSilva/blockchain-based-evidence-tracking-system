@@ -10,7 +10,7 @@ const LoadingSpinner = () => (
     height: '12px',
     marginLeft: '8px',
     borderRadius: '50%',
-    border: '2px solid #00eaffff',
+    border: '2px solid #00ff9cff',
     borderTopColor: 'transparent',
     animation: 'spin 0.6s linear infinite'
   }}>
@@ -866,6 +866,186 @@ Evidence Immutability: CONFIRMED
   const borderColor = isDarkMode ? '#333' : '#e0e0e0';
   const inputBg = isDarkMode ? '#1e1e1e' : '#ffffff';
 
+  // Show login page if wallet connected but no role selected
+  if (walletAddress && !userRole) {
+    return (
+      <div style={{
+        width: '100%',
+        minHeight: '100vh',
+        padding: '50px',
+        backgroundColor: '#121212',
+        backgroundImage: 'url(https://i.pinimg.com/1200x/57/c4/65/57c465579d0ca97b1154e2161ac37a91.jpg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed',
+        fontFamily: 'system-ui, -apple-system, sans-serif',
+        boxSizing: 'border-box',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        margin: 0,
+        position: 'relative'
+      }}>
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(18, 18, 18, 0.9)', zIndex: 0 }}></div>
+        
+        <div style={{
+          position: 'relative',
+          zIndex: 1,
+          backgroundColor: '#1e1e1e',
+          border: '2px solid #00ff9c',
+          borderRadius: '12px',
+          padding: '40px',
+          maxWidth: '450px',
+          width: '100%',
+          boxShadow: '0 0 30px rgba(0, 255, 156, 0.2)'
+        }}>
+          <h1 style={{
+            textAlign: 'center',
+            color: '#00ff9c',
+            marginTop: 0,
+            marginBottom: '10px',
+            fontSize: '2rem',
+            letterSpacing: '2px'
+          }}>
+            EVIDENCE SYSTEM
+          </h1>
+          <p style={{
+            textAlign: 'center',
+            color: '#aaa',
+            marginBottom: '30px',
+            fontSize: '0.95rem'
+          }}>
+            Select your role and authenticate to continue
+          </p>
+
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{
+              display: 'block',
+              color: '#00ff9c',
+              marginBottom: '8px',
+              fontSize: '0.95rem',
+              fontWeight: 'bold'
+            }}>
+              Role
+            </label>
+            <select
+              value={selectedRole}
+              onChange={(e) => {
+                setSelectedRole(e.target.value);
+                setRoleAuthError("");
+              }}
+              style={{
+                width: '100%',
+                padding: '12px',
+                backgroundColor: '#2a2a2a',
+                border: '1px solid #00ff9c',
+                borderRadius: '6px',
+                color: '#ffffff',
+                fontSize: '1rem',
+                cursor: 'pointer',
+                boxSizing: 'border-box'
+              }}
+            >
+              <option value="">-- Select a Role --</option>
+              <option value="investigator">Investigator</option>
+              <option value="admin">Administrator</option>
+              <option value="auditor">Auditor</option>
+            </select>
+          </div>
+
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{
+              display: 'block',
+              color: '#00ff9c',
+              marginBottom: '8px',
+              fontSize: '0.95rem',
+              fontWeight: 'bold'
+            }}>
+              Password
+            </label>
+            <input
+              type="password"
+              value={rolePassword}
+              onChange={(e) => {
+                setRolePassword(e.target.value);
+                setRoleAuthError("");
+              }}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') assignRole();
+              }}
+              placeholder="Enter role password"
+              style={{
+                width: '100%',
+                padding: '12px',
+                backgroundColor: '#2a2a2a',
+                border: '1px solid #00ff9c',
+                borderRadius: '6px',
+                color: '#ffffff',
+                fontSize: '1rem',
+                boxSizing: 'border-box'
+              }}
+            />
+          </div>
+
+          {roleAuthError && (
+            <div style={{
+              backgroundColor: '#d32f2f',
+              color: '#ffffff',
+              padding: '12px',
+              borderRadius: '6px',
+              marginBottom: '20px',
+              fontSize: '0.9rem',
+              border: '1px solid #ff6b6b'
+            }}>
+              {roleAuthError}
+            </div>
+          )}
+
+          <button
+            onClick={assignRole}
+            style={{
+              width: '100%',
+              padding: '12px',
+              backgroundColor: '#00ff9c',
+              color: '#000000',
+              border: 'none',
+              borderRadius: '6px',
+              fontSize: '1rem',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = '#00dd88';
+              e.target.style.boxShadow = '0 0 20px rgba(0, 255, 156, 0.4)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = '#00ff9c';
+              e.target.style.boxShadow = 'none';
+            }}
+          >
+            Login
+          </button>
+
+          <div style={{
+            marginTop: '20px',
+            padding: '12px',
+            backgroundColor: '#2a2a2a',
+            borderRadius: '6px',
+            border: '1px solid #333',
+            fontSize: '0.85rem',
+            color: '#aaa'
+          }}>
+            <strong style={{ color: '#00ff9c' }}>Wallet:</strong>
+            <div style={{ wordBreak: 'break-all', marginTop: '6px', fontFamily: 'monospace' }}>
+              {walletAddress}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ 
       width: '100%', 
@@ -894,7 +1074,7 @@ Evidence Immutability: CONFIRMED
             style={{
               backgroundColor: notif.type === 'success' ? '#2da23d' : notif.type === 'error' ? '#d32f2f' : '#1e1e1e',
               color: notif.type === 'success' || notif.type === 'error' ? 'white' : '#ddd',
-              border: `1px solid ${notif.type === 'success' ? '#4aff4a' : notif.type === 'error' ? '#ff6b6b' : '#333'}`,
+              border: `1px solid ${notif.type === 'success' ? '#00ff9c' : notif.type === 'error' ? '#ff6b6b' : '#333'}`,
               borderRadius: '6px',
               padding: '12px 15px',
               marginBottom: '10px',
@@ -921,74 +1101,7 @@ Evidence Immutability: CONFIRMED
       </div>
 
       {/* Role Selection Modal */}
-      {showRoleModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-          <div style={{ backgroundColor: '#1e1e1e', padding: '40px', borderRadius: '10px', border: '1px solid rgba(0,255,156,0.3)', maxWidth: '400px', width: '100%' }}>
-            <h2 style={{ marginTop: 0, color: '#00ff9c' }}>Select Your Role</h2>
-            <p style={{ color: '#ddd', marginBottom: '20px' }}>Choose your role to continue:</p>
-            <select 
-              value={selectedRole} 
-              onChange={(e) => setSelectedRole(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '10px',
-                marginBottom: '20px',
-                backgroundColor: '#121212',
-                border: '1px solid rgba(0,255,156,0.3)',
-                borderRadius: '5px',
-                color: '#ddd',
-                fontSize: '1rem'
-              }}
-            >
-              <option value="" disabled>Select role...</option>
-              <option value="investigator">Investigator</option>
-              <option value="admin">Admin</option>
-              <option value="auditor">Auditor</option>
-            </select>
-            <input 
-              type="password"
-              placeholder="Role password"
-              value={rolePassword}
-              onChange={(e) => {
-                setRolePassword(e.target.value);
-                if (roleAuthError) setRoleAuthError("");
-              }}
-              style={{
-                width: '100%',
-                padding: '10px',
-                marginBottom: '10px',
-                backgroundColor: '#121212',
-                border: '1px solid rgba(0,255,156,0.3)',
-                borderRadius: '5px',
-                color: '#ddd',
-                fontSize: '1rem',
-                boxSizing: 'border-box'
-              }}
-            />
-            {roleAuthError && (
-              <div style={{ color: '#ff6b6b', fontSize: '0.85rem', marginBottom: '10px' }}>
-                {roleAuthError}
-              </div>
-            )}
-            <button 
-              onClick={assignRole}
-              disabled={!selectedRole || !rolePassword}
-              style={{
-                width: '100%',
-                padding: '10px',
-                backgroundColor: selectedRole && rolePassword ? '#2da23d' : '#667',
-                color: 'black',
-                border: 'none',
-                borderRadius: '5px',
-                fontWeight: 'bold',
-                cursor: selectedRole && rolePassword ? 'pointer' : 'not-allowed'
-              }}
-            >
-              Confirm Role
-            </button>
-          </div>
-        </div>
-      )}
+
 
       {/* Transfer Modal */}
       {showTransferModal && (
@@ -1120,7 +1233,7 @@ Evidence Immutability: CONFIRMED
                   <p style={{ margin: '0 0 15px 0', color: '#ddd', wordBreak: 'break-all' }}>{certificateData.generationTime}</p>
 
                   <p style={{ margin: '8px 0', color: '#00ff9c', fontWeight: 'bold' }}>VERIFICATION STATUS</p>
-                  <p style={{ margin: '0 0 15px 0', color: '#4aff4a', fontWeight: 'bold' }}>{certificateData.verificationStatus}</p>
+                  <p style={{ margin: '0 0 15px 0', color: '#00ff9c', fontWeight: 'bold' }}>{certificateData.verificationStatus}</p>
                 </div>
                 <div>
                   <p style={{ margin: '8px 0', color: '#00ff9c', fontWeight: 'bold' }}>ON-CHAIN ID</p>
@@ -1242,7 +1355,7 @@ Evidence Immutability: CONFIRMED
       
       <div style={{ border: '1px solid #333', padding: '20px', borderRadius: '10px', backgroundColor: 'rgba(30, 30, 30, 0.85)', marginBottom: '40px', display: 'flex', gap: '20px' }}>
         <div style={{ flex: 1 }}>
-          <p><strong>System Status:</strong> <span style={{ color: '#4aff4a', }}><b>{status}</b></span>
+          <p><strong>System Status:</strong> <span style={{ color: '#00ff9c', }}><b>{status}</b></span>
             {status.includes('Signing') && <LoadingSpinner />}
           </p>
           {(userRole === 'investigator' || userRole === 'admin') && (
@@ -1463,7 +1576,7 @@ Evidence Immutability: CONFIRMED
               {walletAddress ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}` : 'Not connected'}
             </p>
             <p style={{ margin: '0 0 8px 0', fontSize: '0.85rem', color: '#00ff9c', fontWeight: 600 }}>Role</p>
-            <p style={{ margin: '0 0 15px 0', fontSize: '0.9rem', color: '#4aff4a', fontWeight: 600 }}>
+            <p style={{ margin: '0 0 15px 0', fontSize: '0.9rem', color: '#00ff9c', fontWeight: 600 }}>
               {userRole ? userRole.toUpperCase() : 'Not assigned'}
             </p>
             <p style={{ margin: '0 0 8px 0', fontSize: '0.85rem', color: '#00ff9c', fontWeight: 600 }}>Status</p>
@@ -1568,11 +1681,11 @@ Evidence Immutability: CONFIRMED
       {userRole === 'admin' && (
         <div style={{ border: '1px solid rgba(0,255,156,0.3)', padding: '20px', borderRadius: '10px', backgroundColor: 'rgba(30, 30, 30, 0.85)', marginBottom: '30px' }}>
           <div style={{ display: 'flex', gap: '10px', marginBottom: '15px', flexWrap: 'wrap' }}>
-            <button onClick={() => setAdminTab('dashboard')} style={{ padding: '8px 15px', backgroundColor: adminTab === 'dashboard' ? '#4aff4a' : '#333', color: adminTab === 'dashboard' ? 'black' : '#ddd', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.9rem' }}>Statistics</button>
-            <button onClick={() => setAdminTab('users')} style={{ padding: '8px 15px', backgroundColor: adminTab === 'users' ? '#4aff4a' : '#333', color: adminTab === 'users' ? 'black' : '#ddd', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.9rem' }}>User Management</button>
-            <button onClick={() => setAdminTab('audit')} style={{ padding: '8px 15px', backgroundColor: adminTab === 'audit' ? '#4aff4a' : '#333', color: adminTab === 'audit' ? 'black' : '#ddd', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.9rem' }}>Audit Log</button>
-            <button onClick={() => setAdminTab('timeline')} style={{ padding: '8px 15px', backgroundColor: adminTab === 'timeline' ? '#4aff4a' : '#333', color: adminTab === 'timeline' ? 'black' : '#ddd', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.9rem' }}>Activity Timeline</button>
-            <button onClick={() => setAdminTab('blockchain')} style={{ padding: '8px 15px', backgroundColor: adminTab === 'blockchain' ? '#4aff4a' : '#333', color: adminTab === 'blockchain' ? 'black' : '#ddd', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.9rem' }}>Blockchain Monitor</button>
+            <button onClick={() => setAdminTab('dashboard')} style={{ padding: '8px 15px', backgroundColor: adminTab === 'dashboard' ? '#00ff9c' : '#333', color: adminTab === 'dashboard' ? 'black' : '#ddd', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.9rem' }}>Statistics</button>
+            <button onClick={() => setAdminTab('users')} style={{ padding: '8px 15px', backgroundColor: adminTab === 'users' ? '#00ff9c' : '#333', color: adminTab === 'users' ? 'black' : '#ddd', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.9rem' }}>User Management</button>
+            <button onClick={() => setAdminTab('audit')} style={{ padding: '8px 15px', backgroundColor: adminTab === 'audit' ? '#00ff9c' : '#333', color: adminTab === 'audit' ? 'black' : '#ddd', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.9rem' }}>Audit Log</button>
+            <button onClick={() => setAdminTab('timeline')} style={{ padding: '8px 15px', backgroundColor: adminTab === 'timeline' ? '#00ff9c' : '#333', color: adminTab === 'timeline' ? 'black' : '#ddd', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.9rem' }}>Activity Timeline</button>
+            <button onClick={() => setAdminTab('blockchain')} style={{ padding: '8px 15px', backgroundColor: adminTab === 'blockchain' ? '#00ff9c' : '#333', color: adminTab === 'blockchain' ? 'black' : '#ddd', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.9rem' }}>Blockchain Monitor</button>
             <button onClick={generateReport} style={{ padding: '8px 15px', backgroundColor: '#00bfff', color: 'black', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.9rem', marginLeft: 'auto' }}>Export Report</button>
           </div>
 
@@ -1581,23 +1694,23 @@ Evidence Immutability: CONFIRMED
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
               <div style={{ border: '1px solid rgba(0,255,156,0.2)', padding: '15px', borderRadius: '6px', backgroundColor: 'rgba(18, 18, 18, 0.5)', textAlign: 'center' }}>
                 <p style={{ margin: '0 0 8px 0', fontSize: '0.85rem', color: '#00ff9c', fontWeight: 600 }}>Total Evidence</p>
-                <p style={{ margin: 0, fontSize: '2rem', color: '#4aff4a', fontWeight: 'bold' }}>{filteredHistory.length}</p>
+                <p style={{ margin: 0, fontSize: '2rem', color: '#00ff9c', fontWeight: 'bold' }}>{filteredHistory.length}</p>
               </div>
               <div style={{ border: '1px solid rgba(0,255,156,0.2)', padding: '15px', borderRadius: '6px', backgroundColor: 'rgba(18, 18, 18, 0.5)', textAlign: 'center' }}>
                 <p style={{ margin: '0 0 8px 0', fontSize: '0.85rem', color: '#00ff9c', fontWeight: 600 }}>Total Users</p>
-                <p style={{ margin: 0, fontSize: '2rem', color: '#4aff4a', fontWeight: 'bold' }}>{Object.entries(users).length}</p>
+                <p style={{ margin: 0, fontSize: '2rem', color: '#00ff9c', fontWeight: 'bold' }}>{Object.entries(users).length}</p>
               </div>
               <div style={{ border: '1px solid rgba(0,255,156,0.2)', padding: '15px', borderRadius: '6px', backgroundColor: 'rgba(18, 18, 18, 0.5)', textAlign: 'center' }}>
                 <p style={{ margin: '0 0 8px 0', fontSize: '0.85rem', color: '#00ff9c', fontWeight: 600 }}>Total Transfers</p>
-                <p style={{ margin: 0, fontSize: '2rem', color: '#4aff4a', fontWeight: 'bold' }}>{localHistory.filter(item => item.name?.includes('Transfer')).length}</p>
+                <p style={{ margin: 0, fontSize: '2rem', color: '#00ff9c', fontWeight: 'bold' }}>{localHistory.filter(item => item.name?.includes('Transfer')).length}</p>
               </div>
               <div style={{ border: '1px solid rgba(0,255,156,0.2)', padding: '15px', borderRadius: '6px', backgroundColor: 'rgba(18, 18, 18, 0.5)', textAlign: 'center' }}>
                 <p style={{ margin: '0 0 8px 0', fontSize: '0.85rem', color: '#00ff9c', fontWeight: 600 }}>Storage Used</p>
-                <p style={{ margin: 0, fontSize: '1.5rem', color: '#4aff4a', fontWeight: 'bold' }}>{(totalStorageUsed / 1024).toFixed(2)} MB</p>
+                <p style={{ margin: 0, fontSize: '1.5rem', color: '#00ff9c', fontWeight: 'bold' }}>{(totalStorageUsed / 1024).toFixed(2)} MB</p>
               </div>
               <div style={{ border: '1px solid rgba(0,255,156,0.2)', padding: '15px', borderRadius: '6px', backgroundColor: 'rgba(18, 18, 18, 0.5)', textAlign: 'center' }}>
                 <p style={{ margin: '0 0 8px 0', fontSize: '0.85rem', color: '#00ff9c', fontWeight: 600 }}>Audit Entries</p>
-                <p style={{ margin: 0, fontSize: '2rem', color: '#4aff4a', fontWeight: 'bold' }}>{auditLog.length}</p>
+                <p style={{ margin: 0, fontSize: '2rem', color: '#00ff9c', fontWeight: 'bold' }}>{auditLog.length}</p>
               </div>
               <div style={{ border: '1px solid rgba(0,255,156,0.2)', padding: '15px', borderRadius: '6px', backgroundColor: 'rgba(18, 18, 18, 0.5)', textAlign: 'center' }}>
                 <p style={{ margin: '0 0 8px 0', fontSize: '0.85rem', color: '#00ff9c', fontWeight: 600 }}>System Status</p>
@@ -1649,7 +1762,7 @@ Evidence Immutability: CONFIRMED
                     onClick={createNewUser}
                     style={{
                       padding: '8px 15px',
-                      backgroundColor: '#4aff4a',
+                      backgroundColor: '#00ff9c',
                       color: 'black',
                       border: 'none',
                       borderRadius: '4px',
@@ -1730,7 +1843,7 @@ Evidence Immutability: CONFIRMED
                   {auditLog.map((entry, idx) => (
                     <div key={entry.id} style={{ marginBottom: '15px', paddingBottom: '15px', borderBottom: idx < auditLog.length - 1 ? '1px solid rgba(0,255,156,0.1)' : 'none' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '5px' }}>
-                        <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#4aff4a', marginLeft: '-24px' }}></div>
+                        <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#00ff9c', marginLeft: '-24px' }}></div>
                         <span style={{ fontSize: '0.75rem', color: '#00ff9c', fontWeight: 600 }}>{entry.timestamp}</span>
                         <span style={{ fontSize: '0.75rem', color: '#888', backgroundColor: 'rgba(0,255,156,0.1)', padding: '2px 6px', borderRadius: '3px' }}>{entry.actionType}</span>
                       </div>
@@ -1856,13 +1969,13 @@ Evidence Immutability: CONFIRMED
           }
           button.view-button {
             display: inline-block;
-            background-color: #555 !important;
+            background-color: #00ff9c !important;
             color: white !important;
             text-decoration: none;
             font-weight: bold;
             font-size: 0.85rem;
             padding: 4px 12px !important;
-            border: 1px solid #666 !important;
+            border: 1px solid #00ff9c !important;
             border-radius: 3px;
             cursor: pointer;
             -webkit-appearance: none;
@@ -1874,7 +1987,7 @@ Evidence Immutability: CONFIRMED
           }
           a.view-button {
             display: inline-block;
-            background-color: #555 !important;
+            background-color: #00ff9c !important;
             color: white !important;
             text-decoration: none;
             font-weight: bold;
@@ -1885,7 +1998,7 @@ Evidence Immutability: CONFIRMED
             cursor: pointer;
           }
           a.view-button:hover {
-            background-color: #666 !important;
+            background-color: #00ff9c !important;
           }
         `}</style>
         
@@ -1906,7 +2019,7 @@ Evidence Immutability: CONFIRMED
                 <th style={{ padding: '12px', textAlign: 'left', wordBreak: 'break-word' }}>Timestamp</th>
                 <th style={{ padding: '12px', textAlign: 'left', wordBreak: 'break-word' }}>View Image</th>
                 <th style={{ padding: '12px', textAlign: 'left', wordBreak: 'break-word' }}>View Transaction</th>
-                <th style={{ padding: '12px 12px 12px 30px', textAlign: 'left', wordBreak: 'break-word' }}>Certificate</th>
+                <th style={{ padding: '12px 12px 12px 30px', textAlign: 'left', wordBreak: 'break-word' }}>PoE Certificate</th>
               </tr>
             </thead>
             <tbody>
@@ -1969,7 +2082,7 @@ Evidence Immutability: CONFIRMED
                       className="view-button"
                       onClick={() => generateCertificate(item)}
                     >
-                      PoE Cert
+                      View
                     </button>
                   </td>
                 </tr>

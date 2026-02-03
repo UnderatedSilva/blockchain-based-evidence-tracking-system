@@ -866,186 +866,6 @@ Evidence Immutability: CONFIRMED
   const borderColor = isDarkMode ? '#333' : '#e0e0e0';
   const inputBg = isDarkMode ? '#1e1e1e' : '#ffffff';
 
-  // Show login page if wallet connected but no role selected
-  if (walletAddress && !userRole) {
-    return (
-      <div style={{
-        width: '100%',
-        minHeight: '100vh',
-        padding: '50px',
-        backgroundColor: '#121212',
-        backgroundImage: 'url(https://i.pinimg.com/1200x/57/c4/65/57c465579d0ca97b1154e2161ac37a91.jpg)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundAttachment: 'fixed',
-        fontFamily: 'system-ui, -apple-system, sans-serif',
-        boxSizing: 'border-box',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        margin: 0,
-        position: 'relative'
-      }}>
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(18, 18, 18, 0.9)', zIndex: 0 }}></div>
-        
-        <div style={{
-          position: 'relative',
-          zIndex: 1,
-          backgroundColor: '#1e1e1e',
-          border: '2px solid #00ff9c',
-          borderRadius: '12px',
-          padding: '40px',
-          maxWidth: '450px',
-          width: '100%',
-          boxShadow: '0 0 30px rgba(0, 255, 156, 0.2)'
-        }}>
-          <h1 style={{
-            textAlign: 'center',
-            color: '#00ff9c',
-            marginTop: 0,
-            marginBottom: '10px',
-            fontSize: '2rem',
-            letterSpacing: '2px'
-          }}>
-            EVIDENCE SYSTEM
-          </h1>
-          <p style={{
-            textAlign: 'center',
-            color: '#aaa',
-            marginBottom: '30px',
-            fontSize: '0.95rem'
-          }}>
-            Select your role and authenticate to continue
-          </p>
-
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{
-              display: 'block',
-              color: '#00ff9c',
-              marginBottom: '8px',
-              fontSize: '0.95rem',
-              fontWeight: 'bold'
-            }}>
-              Role
-            </label>
-            <select
-              value={selectedRole}
-              onChange={(e) => {
-                setSelectedRole(e.target.value);
-                setRoleAuthError("");
-              }}
-              style={{
-                width: '100%',
-                padding: '12px',
-                backgroundColor: '#2a2a2a',
-                border: '1px solid #00ff9c',
-                borderRadius: '6px',
-                color: '#ffffff',
-                fontSize: '1rem',
-                cursor: 'pointer',
-                boxSizing: 'border-box'
-              }}
-            >
-              <option value="">-- Select a Role --</option>
-              <option value="investigator">Investigator</option>
-              <option value="admin">Administrator</option>
-              <option value="auditor">Auditor</option>
-            </select>
-          </div>
-
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{
-              display: 'block',
-              color: '#00ff9c',
-              marginBottom: '8px',
-              fontSize: '0.95rem',
-              fontWeight: 'bold'
-            }}>
-              Password
-            </label>
-            <input
-              type="password"
-              value={rolePassword}
-              onChange={(e) => {
-                setRolePassword(e.target.value);
-                setRoleAuthError("");
-              }}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') assignRole();
-              }}
-              placeholder="Enter role password"
-              style={{
-                width: '100%',
-                padding: '12px',
-                backgroundColor: '#2a2a2a',
-                border: '1px solid #00ff9c',
-                borderRadius: '6px',
-                color: '#ffffff',
-                fontSize: '1rem',
-                boxSizing: 'border-box'
-              }}
-            />
-          </div>
-
-          {roleAuthError && (
-            <div style={{
-              backgroundColor: '#d32f2f',
-              color: '#ffffff',
-              padding: '12px',
-              borderRadius: '6px',
-              marginBottom: '20px',
-              fontSize: '0.9rem',
-              border: '1px solid #ff6b6b'
-            }}>
-              {roleAuthError}
-            </div>
-          )}
-
-          <button
-            onClick={assignRole}
-            style={{
-              width: '100%',
-              padding: '12px',
-              backgroundColor: '#00ff9c',
-              color: '#000000',
-              border: 'none',
-              borderRadius: '6px',
-              fontSize: '1rem',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease'
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.backgroundColor = '#00dd88';
-              e.target.style.boxShadow = '0 0 20px rgba(0, 255, 156, 0.4)';
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.backgroundColor = '#00ff9c';
-              e.target.style.boxShadow = 'none';
-            }}
-          >
-            Login
-          </button>
-
-          <div style={{
-            marginTop: '20px',
-            padding: '12px',
-            backgroundColor: '#2a2a2a',
-            borderRadius: '6px',
-            border: '1px solid #333',
-            fontSize: '0.85rem',
-            color: '#aaa'
-          }}>
-            <strong style={{ color: '#00ff9c' }}>Wallet:</strong>
-            <div style={{ wordBreak: 'break-all', marginTop: '6px', fontFamily: 'monospace' }}>
-              {walletAddress}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div style={{ 
       width: '100%', 
@@ -1101,7 +921,74 @@ Evidence Immutability: CONFIRMED
       </div>
 
       {/* Role Selection Modal */}
-
+      {showRoleModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
+          <div style={{ backgroundColor: '#1e1e1e', padding: '40px', borderRadius: '10px', border: '1px solid rgba(0,255,156,0.3)', maxWidth: '400px', width: '100%' }}>
+            <h2 style={{ marginTop: 0, color: '#00ff9c' }}>Select Your Role</h2>
+            <p style={{ color: '#ddd', marginBottom: '20px' }}>Choose your role to continue:</p>
+            <select 
+              value={selectedRole} 
+              onChange={(e) => setSelectedRole(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '10px',
+                marginBottom: '20px',
+                backgroundColor: '#121212',
+                border: '1px solid rgba(0,255,156,0.3)',
+                borderRadius: '5px',
+                color: '#ddd',
+                fontSize: '1rem'
+              }}
+            >
+              <option value="" disabled>Select role...</option>
+              <option value="investigator">Investigator</option>
+              <option value="admin">Admin</option>
+              <option value="auditor">Auditor</option>
+            </select>
+            <input 
+              type="password"
+              placeholder="Role password"
+              value={rolePassword}
+              onChange={(e) => {
+                setRolePassword(e.target.value);
+                if (roleAuthError) setRoleAuthError("");
+              }}
+              style={{
+                width: '100%',
+                padding: '10px',
+                marginBottom: '10px',
+                backgroundColor: '#121212',
+                border: '1px solid rgba(0,255,156,0.3)',
+                borderRadius: '5px',
+                color: '#ddd',
+                fontSize: '1rem',
+                boxSizing: 'border-box'
+              }}
+            />
+            {roleAuthError && (
+              <div style={{ color: '#ff6b6b', fontSize: '0.85rem', marginBottom: '10px' }}>
+                {roleAuthError}
+              </div>
+            )}
+            <button 
+              onClick={assignRole}
+              disabled={!selectedRole || !rolePassword}
+              style={{
+                width: '100%',
+                padding: '10px',
+                backgroundColor: selectedRole && rolePassword ? '#2da23d' : '#667',
+                color: 'black',
+                border: 'none',
+                borderRadius: '5px',
+                fontWeight: 'bold',
+                cursor: selectedRole && rolePassword ? 'pointer' : 'not-allowed'
+              }}
+            >
+              Confirm Role
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Transfer Modal */}
       {showTransferModal && (

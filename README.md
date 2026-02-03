@@ -27,7 +27,6 @@ Bullet points are your friend here. What makes this app special?
 
 ### 4. Getting Started (The "How-To")
 
-Don't assume everyone knows the commands. Provide a clear path:
 
 ```bash
 # Clone the repository

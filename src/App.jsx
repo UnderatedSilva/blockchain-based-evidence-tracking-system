@@ -922,8 +922,8 @@ Evidence Immutability: CONFIRMED
 
       {/* Role Selection Modal */}
       {showRoleModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-          <div style={{ backgroundColor: '#1e1e1e', padding: '40px', borderRadius: '10px', border: '1px solid rgba(0,255,156,0.3)', maxWidth: '400px', width: '100%' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }} onClick={() => setShowRoleModal(false)}>
+          <div style={{ backgroundColor: '#1e1e1e', padding: '40px', borderRadius: '10px', border: '1px solid rgba(0,255,156,0.3)', maxWidth: '400px', width: '100%' }} onClick={(e) => e.stopPropagation()}>
             <h2 style={{ marginTop: 0, color: '#00ff9c' }}>Select Your Role</h2>
             <p style={{ color: '#ddd', marginBottom: '20px' }}>Choose your role to continue:</p>
             <select 

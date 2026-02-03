@@ -4,7 +4,7 @@
 
 This project is a decentralized web application designed to maintain a transparent, tamper-proof, and verifiable record of digital evidence. By combining **Ethereum Smart Contracts**, **IPFS**, and **SHA-256 Hashing**, it ensures that forensic evidence remains admissible in court by preventing unauthorized modifications and manual logging errors.
 
-[Live Demo Link](https://www.google.com/search?q=%23) | [Project Proposal](https://www.google.com/search?q=./docs/10953276_project_proposal.pdf) | [Report Bug](https://www.google.com/search?q=https://github.com/your-username/forensic-chain/issues)
+[Live Demo Link]([https://www.google.com/search?q=%23](https://blockchain-based-evidence-management-system.vercel.app/)) 
 
 ---
 

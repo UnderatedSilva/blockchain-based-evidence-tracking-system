@@ -1,75 +1,148 @@
+# 🔍 Forensic Chain: Blockchain-Based Evidence Tracking System
+
+> **Securing Forensic Integrity & Immutable Chain of Custody**
+
+This project is a decentralized web application designed to maintain a transparent, tamper-proof, and verifiable record of digital evidence. By combining **Ethereum Smart Contracts**, **IPFS**, and **SHA-256 Hashing**, it ensures that forensic evidence remains admissible in court by preventing unauthorized modifications and manual logging errors.
+
+[Live Demo Link](https://www.google.com/search?q=%23) | [Project Proposal](https://www.google.com/search?q=./docs/10953276_project_proposal.pdf) | [Report Bug](https://www.google.com/search?q=https://github.com/your-username/forensic-chain/issues)
+
+---
+
+## ✨ Key Features
+
+* 
+**✅ Immutable Chain of Custody:** Every upload, transfer, and access event is permanently recorded on the Ethereum blockchain.
 
 
-## 🚀 Recommended Additions
+* **✅ Cryptographic Integrity Verification:** Uses **SHA-256** to create a unique digital fingerprint for every file. The system automatically detects if even a single bit of evidence has been altered.
 
-### 1. Project Overview & Demo
 
-Briefly explain the "Why" behind the project. If you have it deployed (on Vercel, Netlify, etc.), put the link right at the top.
+* 
+**✅ Decentralized Storage:** Actual evidence files are stored on **IPFS** (InterPlanetary File System), ensuring high availability and resilience against single points of failure.
 
-* **Pro Tip:** Add a screenshot or a GIF of the app in action. Visuals are the first thing people look at.
 
-### 2. Tech Stack
+* 
+**✅ Role-Based Access Control (RBAC):** Distinct permissions for **Administrators**, **Forensic Investigators**, and **Auditors**.
 
-List the main libraries you’re using so people know what's under the hood.
 
-* **Frontend:** React, Vite, Tailwind CSS / Styled Components.
-* **State Management:** Redux Toolkit, Zustand, or React Context.
-* **Data Fetching:** Axios, React Query (TanStack).
+* 
+**✅ Automated Audit Trails:** Generates comprehensive, timestamped logs for forensic reporting and legal admissibility.
 
-### 3. Features
 
-Bullet points are your friend here. What makes this app special?
 
-* ✅ Responsive design for mobile and desktop.
-* ✅ User authentication via Firebase/Auth0.
-* ✅ Dark mode support.
-* ✅ Real-time data updates.
+---
 
-### 4. Getting Started (The "How-To")
+## 🛠️ Tech Stack
 
+* 
+**Frontend:** React.js + Vite (User-friendly Forensic Dashboard) 
+
+
+* 
+**Blockchain:** Solidity + Ethereum (Sepolia/Ganache Testnets) 
+
+
+* 
+**Storage:** IPFS (Distributed File Storage) 
+
+
+* 
+**Authentication:** MetaMask (Blockchain-based Identity) 
+
+
+* 
+**Library:** Ethers.js / Web3.js (Blockchain Interaction) 
+
+
+
+---
+
+## 🏃 Getting Started
+
+### 1. Prerequisites
+
+* **Node.js** installed
+* **MetaMask** browser extension
+* 
+**Ganache** (for local blockchain testing) 
+
+
+
+### 2. Installation
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/your-repo-name.git
+git clone https://github.com/your-username/forensic-chain.git
+
+# Enter the directory
+cd forensic-chain
 
 # Install dependencies
 npm install
 
-# Run the development server
+```
+
+### 3. Setup Environment Variables
+
+Create a `.env` file in the root directory:
+
+```text
+VITE_CONTRACT_ADDRESS=your_smart_contract_address
+VITE_PINATA_JWT=your_ipfs_gateway_token
+
+```
+
+### 4. Run the App
+
+```bash
 npm run dev
 
 ```
 
-### 5. Environment Variables
+---
 
-If your project uses API keys, list the keys needed in a `.env.example` format so others can set it up without guessing.
+## 📂 System Architecture
+
+The system uses a layered architecture to separate concerns and maximize security:
+
+1. 
+**Application Layer:** React.js frontend for investigator interaction.
+
+
+2. 
+**Logic Layer:** Node.js/Web3.js for hashing and IPFS coordination.
+
+
+3. 
+**Blockchain Layer:** Solidity Smart Contracts for immutable record keeping.
+
+
+4. 
+**Storage Layer:** IPFS for secure, decentralized file retention.
+
+
 
 ---
 
+## 📜 Academic Context
 
-```markdown
-# 🌟 Project Title
+* 
+**Degree:** BSc (Hons) Computer Security 
 
-A concise one-line description of what this project does.
 
-[Live Demo Link](https://your-link.com) | [Report Bug](https://github.com/user/repo/issues)
+* 
+**University:** University of Plymouth 
 
-## ✨ Features
-- **Feature A**: Description of why it's cool.
-- **Feature B**: Another awesome functionality.
 
-## 🛠️ Tech Stack
-- **Framework:** React + Vite
-- **Styling:** Tailwind CSS
-- **Icons:** Lucide React
+* 
+**Supervisor:** Dr. Pabudi Abeyrathne 
 
-## 🏃 Getting Started
-1. Clone the repo.
-2. Run `npm install`.
-3. Create a `.env` file based on `.env.example`.
-4. Run `npm run dev` to start the local server.
 
-```
 
 ---
 
+## 🛡️ Security Disclaimer
+
+This project is a functional prototype developed for academic evaluation and is not intended for use in real-world criminal investigations without further professional auditing.
+
+---

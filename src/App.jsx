@@ -24,6 +24,7 @@ const LoadingSpinner = () => (
 
 function App() {
   const [file, setFile] = useState(null);
+  const [batchFiles, setBatchFiles] = useState([]);
   const [fileName, setFileName] = useState("");
   const [status, setStatus] = useState("Ready");
   const [history, setHistory] = useState([]);
@@ -69,6 +70,16 @@ function App() {
   const [newUserAddress, setNewUserAddress] = useState("");
   const [newUserRole, setNewUserRole] = useState("investigator");
   const [caseId, setCaseId] = useState("");
+  const [caseFolders, setCaseFolders] = useState(() => {
+    try {
+      const saved = localStorage.getItem('caseFolders');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [newCaseFolderName, setNewCaseFolderName] = useState("");
+  const [selectedCaseFolder, setSelectedCaseFolder] = useState("");
   const [investigatorName, setInvestigatorName] = useState("");
   const [location, setLocation] = useState("");
   const [locationStatus, setLocationStatus] = useState("");
@@ -80,6 +91,7 @@ function App() {
   const [verifyDetail, setVerifyDetail] = useState("");
   const [filterCaseId, setFilterCaseId] = useState("");
   const [filterRole, setFilterRole] = useState("");
+  const [filterCaseFolder, setFilterCaseFolder] = useState("");
   const [filterStartDate, setFilterStartDate] = useState("");
   const [filterEndDate, setFilterEndDate] = useState("");
   const [showTimelineModal, setShowTimelineModal] = useState(false);
@@ -88,6 +100,11 @@ function App() {
   const [backupFile, setBackupFile] = useState(null);
   const [showCertificateModal, setShowCertificateModal] = useState(false);
   const [certificateData, setCertificateData] = useState(null);
+  const [auditFilterCaseId, setAuditFilterCaseId] = useState("");
+  const [auditFilterActionType, setAuditFilterActionType] = useState("");
+  const [auditFilterWallet, setAuditFilterWallet] = useState("");
+  const [auditFilterStartDate, setAuditFilterStartDate] = useState("");
+  const [auditFilterEndDate, setAuditFilterEndDate] = useState("");
 
   const rolePasswords = {
     investigator: import.meta.env.VITE_ROLE_PASS_INVESTIGATOR || "investigator123",
@@ -179,6 +196,43 @@ function App() {
   useEffect(() => {
     localStorage.setItem('auditLog', JSON.stringify(auditLog));
   }, [auditLog]);
+
+  // Save case folders to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('caseFolders', JSON.stringify(caseFolders));
+  }, [caseFolders]);
+
+  const normalizeCaseFolder = (value) => value.trim();
+
+  const ensureCaseFolder = (folderName) => {
+    const normalized = normalizeCaseFolder(folderName || '');
+    if (!normalized) return;
+    const exists = caseFolders.some((folder) => folder.toLowerCase() === normalized.toLowerCase());
+    if (!exists) {
+      setCaseFolders((prev) => [...prev, normalized]);
+    }
+  };
+
+  const createCaseFolder = () => {
+    const normalized = normalizeCaseFolder(newCaseFolderName || '');
+    if (!normalized) {
+      addNotification('Please enter a case folder name', 'error');
+      return;
+    }
+    const exists = caseFolders.some((folder) => folder.toLowerCase() === normalized.toLowerCase());
+    if (exists) {
+      addNotification('Case folder already exists', 'error');
+      return;
+    }
+    setCaseFolders((prev) => [...prev, normalized]);
+    setSelectedCaseFolder(normalized);
+    setCaseId(normalized);
+    setNewCaseFolderName('');
+    addNotification(`Case folder "${normalized}" created`, 'success');
+    logAudit(`Created case folder: ${normalized}`, walletAddress, 'CASE_FOLDER_CREATED', {
+      caseId: normalized
+    });
+  };
 
   // 1. IMPROVED: Fetch from the mapping 'evidenceLog'
   const fetchHistory = async () => {
@@ -300,7 +354,7 @@ function App() {
       role: userRole,
       ...meta
     };
-    setAuditLog([logEntry, ...auditLog]);
+    setAuditLog((prev) => [logEntry, ...prev]);
   };
 
   // Transfer evidence ownership
@@ -343,104 +397,184 @@ function App() {
     }
   };
 
+  const uploadEvidenceFile = async (fileBlob, displayNameOverride = '') => {
+    const sha256 = await computeSHA256(fileBlob);
+
+    setStatus(`Uploading ${fileBlob.name} to IPFS...`);
+    const formData = new FormData();
+    formData.append('file', fileBlob);
+
+    const startTime = Date.now();
+    const pinataRes = await axios.post("https://api.pinata.cloud/pinning/pinFileToIPFS", formData, {
+      headers: { 'Authorization': `Bearer ${import.meta.env.VITE_PINATA_JWT}` },
+      onUploadProgress: (progressEvent) => {
+        const percentCompleted = Math.round((progressEvent.loaded * 50) / progressEvent.total);
+        setUploadProgress(percentCompleted);
+        const elapsedSeconds = (Date.now() - startTime) / 1000;
+        const speedKBps = (progressEvent.loaded / 1024) / elapsedSeconds;
+        setUploadSpeed(speedKBps);
+        setSpeedHistory((prev) => [...prev, speedKBps].slice(-40));
+      }
+    });
+
+    const ipfsHash = pinataRes.data.IpfsHash;
+    setUploadProgress(50);
+    setStatus(`Signing transaction for ${fileBlob.name}...`);
+
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
+    const contract = new ethers.Contract(import.meta.env.VITE_CONTRACT_ADDRESS, abi, signer);
+
+    const resolvedCaseId = caseId.trim() || selectedCaseFolder.trim();
+    const meta = {
+      sha256,
+      caseId: resolvedCaseId,
+      investigator: investigatorName.trim(),
+      location: location.trim(),
+      notes: notes.trim()
+    };
+
+    if (resolvedCaseId) {
+      ensureCaseFolder(resolvedCaseId);
+    }
+
+    const description = buildEvidenceDescription(meta);
+    const displayName = displayNameOverride.trim() || fileBlob.name;
+    const tx = await contract.uploadEvidence(displayName, description, ipfsHash);
+    setUploadProgress(75);
+    const receipt = await tx.wait();
+    setUploadProgress(100);
+
+    const holder = await signer.getAddress();
+    const newEntry = {
+      id: Date.now().toString(),
+      name: displayName,
+      desc: description,
+      hash: ipfsHash,
+      holder,
+      time: new Date().toLocaleString(),
+      timestampMs: Date.now(),
+      txHash: receipt.hash,
+      eventType: 'UPLOAD',
+      sha256,
+      caseId: meta.caseId,
+      investigator: meta.investigator,
+      location: meta.location,
+      notes: meta.notes,
+      role: userRole
+    };
+
+    setLocalHistory((prev) => [newEntry, ...prev]);
+    logAudit(`Uploaded evidence: ${displayName}`, walletAddress, 'UPLOAD', {
+      evidenceHash: ipfsHash,
+      sha256,
+      caseId: meta.caseId,
+      investigator: meta.investigator,
+      location: meta.location
+    });
+
+    return { ipfsHash, displayName };
+  };
+
   // Log upload action
   const uploadToBlockchain = async () => {
+    if (!file) {
+      addNotification('Please select a file first', 'error');
+      return;
+    }
     try {
       setUploadProgress(0);
       setStatus("Hashing file...");
 
-      const sha256 = await computeSHA256(file);
-
-      setStatus("Uploading to IPFS...");
-      
-      const formData = new FormData();
-      formData.append('file', file);
-      
-      const startTime = Date.now();
-      const pinataRes = await axios.post("https://api.pinata.cloud/pinning/pinFileToIPFS", formData, {
-        headers: { 'Authorization': `Bearer ${import.meta.env.VITE_PINATA_JWT}` },
-        onUploadProgress: (progressEvent) => {
-          const percentCompleted = Math.round((progressEvent.loaded * 50) / progressEvent.total);
-          setUploadProgress(percentCompleted);
-          const elapsedSeconds = (Date.now() - startTime) / 1000;
-          const speedKBps = (progressEvent.loaded / 1024) / elapsedSeconds;
-          setUploadSpeed(speedKBps);
-          setSpeedHistory((prev) => [...prev, speedKBps].slice(-40));
-        }
-      });
-
-      const ipfsHash = pinataRes.data.IpfsHash;
-      setUploadProgress(50);
-      setStatus("IPFS Done! Signing Transaction...");
-
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-      const contract = new ethers.Contract(import.meta.env.VITE_CONTRACT_ADDRESS, abi, signer);
-
-      const meta = {
-        sha256,
-        caseId: caseId.trim(),
-        investigator: investigatorName.trim(),
-        location: location.trim(),
-        notes: notes.trim()
-      };
-      const description = buildEvidenceDescription(meta);
-
-      // Sending data: Use custom name or original file name
-      const displayName = fileName.trim() || file.name;
-      const tx = await contract.uploadEvidence(displayName, description, ipfsHash);
-      setUploadProgress(75);
-      const receipt = await tx.wait();
-      setUploadProgress(100);
-
+      const { ipfsHash, displayName } = await uploadEvidenceFile(file, fileName);
       setStatus(`Success! Hash: ${ipfsHash}`);
       setUploadSpeed(0);
       addNotification(`Evidence "${displayName}" uploaded successfully!`, 'success');
-      
-      // Add to local history immediately
-      const newEntry = {
-        id: Date.now().toString(),
-        name: displayName,
-        desc: description,
-        hash: ipfsHash,
-        holder: await signer.getAddress(),
-        time: new Date().toLocaleString(),
-        timestampMs: Date.now(),
-        txHash: receipt.hash,
-        eventType: 'UPLOAD',
-        sha256,
-        caseId: meta.caseId,
-        investigator: meta.investigator,
-        location: meta.location,
-        notes: meta.notes,
-        role: userRole
-      };
-      setLocalHistory([newEntry, ...localHistory]);
-      logAudit(`Uploaded evidence: ${displayName}`, walletAddress, 'UPLOAD', {
-        evidenceHash: ipfsHash,
-        sha256,
-        caseId: meta.caseId,
-        investigator: meta.investigator,
-        location: meta.location
-      });
+
+      setFile(null);
+      setBatchFiles([]);
       setFileName("");
       setCaseId("");
       setInvestigatorName("");
       setLocation("");
       setNotes("");
-      
-      // Reset progress after 2 seconds
+
       setTimeout(() => {
         setUploadProgress(0);
         setSpeedHistory([]);
         fetchHistory();
       }, 2000);
-      
     } catch (error) {
       console.error(error);
       setStatus("Error: " + error.message);
       setUploadProgress(0);
     }
+  };
+
+  const uploadBatchToBlockchain = async () => {
+    if (!batchFiles.length) {
+      addNotification('Please choose one or more files for batch upload', 'error');
+      return;
+    }
+
+    try {
+      setUploadProgress(0);
+      setStatus(`Batch upload started (${batchFiles.length} files)...`);
+      let successCount = 0;
+
+      for (let index = 0; index < batchFiles.length; index++) {
+        const currentFile = batchFiles[index];
+        setStatus(`Batch ${index + 1}/${batchFiles.length}: hashing ${currentFile.name}...`);
+        await uploadEvidenceFile(currentFile);
+        successCount += 1;
+      }
+
+      setUploadSpeed(0);
+      setStatus(`Batch completed: ${successCount}/${batchFiles.length} uploaded`);
+      addNotification(`Batch upload complete (${successCount} files)`, 'success');
+      logAudit('Batch upload completed', walletAddress, 'BATCH_UPLOAD', {
+        filesUploaded: successCount,
+        caseId: caseId.trim() || selectedCaseFolder.trim() || null
+      });
+
+      setBatchFiles([]);
+      setFile(null);
+      setCaseId("");
+      setInvestigatorName("");
+      setLocation("");
+      setNotes("");
+
+      setTimeout(() => {
+        setUploadProgress(0);
+        setSpeedHistory([]);
+        fetchHistory();
+      }, 2000);
+    } catch (error) {
+      console.error(error);
+      setStatus("Batch upload error: " + error.message);
+      setUploadProgress(0);
+    }
+  };
+
+  const logTamperDetected = ({
+    evidenceHash,
+    evidenceId,
+    investigator,
+    caseId,
+    reason,
+    computedSha256,
+    expectedSha256
+  }) => {
+    logAudit('Tamper detected during evidence verification', walletAddress, 'TAMPER_DETECTED', {
+      evidenceHash: evidenceHash || null,
+      evidenceId: evidenceId || null,
+      investigator: investigator || 'Unknown',
+      caseId: caseId || null,
+      reason,
+      computedSha256: computedSha256 || null,
+      expectedSha256: expectedSha256 || null,
+      detectionTimestamp: new Date().toISOString()
+    });
   };
 
   const verifyEvidence = async () => {
@@ -490,6 +624,17 @@ function App() {
         sha256: computedHash,
         verificationResult: match ? 'MATCH' : 'MISMATCH'
       });
+      if (!match) {
+        logTamperDetected({
+          evidenceHash: verifyHash,
+          evidenceId: target.id,
+          investigator: target.investigator,
+          caseId: target.caseId,
+          reason: 'Local SHA-256 verification mismatch',
+          computedSha256: computedHash,
+          expectedSha256: target.sha256
+        });
+      }
     } catch (error) {
       setVerifyStatus('error');
       setVerifyDetail('Verification error: ' + error.message);
@@ -549,6 +694,17 @@ function App() {
         onChainSha256: meta.sha256,
         verificationResult: match ? 'MATCH_ONCHAIN' : 'MISMATCH_ONCHAIN'
       });
+      if (!match) {
+        logTamperDetected({
+          evidenceHash: onChain.ipfsHash,
+          evidenceId: verifyId,
+          investigator: meta.investigator,
+          caseId: meta.caseId,
+          reason: 'On-chain SHA-256 verification mismatch',
+          computedSha256: computedHash,
+          expectedSha256: meta.sha256
+        });
+      }
     } catch (error) {
       setVerifyStatus('error');
       setVerifyDetail('On-chain verification error: ' + error.message);
@@ -800,7 +956,92 @@ Evidence Immutability: CONFIRMED
   };
 
   // Filter history based on search term and filters
-  const filteredHistory = [...localHistory, ...history].filter((item) => {
+  const allHistory = [...localHistory, ...history];
+  const allCaseFolders = [
+    ...caseFolders,
+    ...Array.from(new Set(allHistory.map((item) => (item.caseId || '').trim()).filter(Boolean)))
+  ].reduce((acc, folder) => {
+    if (!acc.some((existing) => existing.toLowerCase() === folder.toLowerCase())) {
+      acc.push(folder);
+    }
+    return acc;
+  }, []);
+
+  const caseFolderCounts = allHistory.reduce((acc, item) => {
+    const folder = (item.caseId || '').trim();
+    if (folder) {
+      acc[folder] = (acc[folder] || 0) + 1;
+    }
+    return acc;
+  }, {});
+
+  const auditActionTypes = Array.from(new Set(auditLog.map((entry) => entry.actionType).filter(Boolean)));
+
+  const filteredAuditLog = auditLog.filter((entry) => {
+    const matchesCaseId = auditFilterCaseId
+      ? (entry.caseId || '').toLowerCase().includes(auditFilterCaseId.toLowerCase())
+      : true;
+
+    const matchesActionType = auditFilterActionType
+      ? entry.actionType === auditFilterActionType
+      : true;
+
+    const matchesWallet = auditFilterWallet
+      ? (entry.actor || '').toLowerCase().includes(auditFilterWallet.toLowerCase())
+      : true;
+
+    const entryDate = entry.timestampMs ? new Date(entry.timestampMs) : null;
+    const startDate = auditFilterStartDate ? new Date(auditFilterStartDate) : null;
+    const endDate = auditFilterEndDate ? new Date(auditFilterEndDate) : null;
+    const matchesDate =
+      (!startDate || (entryDate && entryDate >= startDate)) &&
+      (!endDate || (entryDate && entryDate <= new Date(endDate.getTime() + 24 * 60 * 60 * 1000 - 1)));
+
+    return matchesCaseId && matchesActionType && matchesWallet && matchesDate;
+  });
+
+  const certificateHashes = new Set(
+    auditLog
+      .filter((entry) => entry.actionType === 'CERTIFICATE_GENERATED' && entry.evidenceHash)
+      .map((entry) => entry.evidenceHash)
+  );
+
+  const readinessByCase = allCaseFolders
+    .map((folder) => {
+      const caseItems = allHistory.filter((item) => (item.caseId || '').trim().toLowerCase() === folder.toLowerCase());
+      const total = caseItems.length;
+      if (total === 0) {
+        return {
+          caseId: folder,
+          totalEvidence: 0,
+          metadataComplete: 0,
+          shaPresent: 0,
+          cidPresent: 0,
+          certGenerated: 0,
+          score: 0
+        };
+      }
+
+      const metadataComplete = caseItems.filter((item) => item.caseId && item.investigator && item.location && item.notes).length;
+      const shaPresent = caseItems.filter((item) => item.sha256).length;
+      const cidPresent = caseItems.filter((item) => item.hash).length;
+      const certGenerated = caseItems.filter((item) => item.hash && certificateHashes.has(item.hash)).length;
+
+      const score = Math.round(((metadataComplete + shaPresent + cidPresent + certGenerated) / (total * 4)) * 100);
+
+      return {
+        caseId: folder,
+        totalEvidence: total,
+        metadataComplete,
+        shaPresent,
+        cidPresent,
+        certGenerated,
+        score
+      };
+    })
+    .sort((a, b) => b.score - a.score || b.totalEvidence - a.totalEvidence);
+
+  const filteredHistory = allHistory.filter((item) => {
     const roleForItem = item.role || users[item.holder] || '';
     const matchesText =
       item.hash?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -814,6 +1055,10 @@ Evidence Immutability: CONFIRMED
       ? item.caseId?.toLowerCase().includes(filterCaseId.toLowerCase())
       : true;
 
+    const matchesFolder = filterCaseFolder
+      ? (item.caseId || '').toLowerCase() === filterCaseFolder.toLowerCase()
+      : true;
+
     const matchesRole = filterRole ? roleForItem === filterRole : true;
 
     const itemDate = item.timestampMs ? new Date(item.timestampMs) : null;
@@ -823,7 +1068,7 @@ Evidence Immutability: CONFIRMED
       (!startDate || (itemDate && itemDate >= startDate)) &&
       (!endDate || (itemDate && itemDate <= new Date(endDate.getTime() + 24 * 60 * 60 * 1000 - 1)));
 
-    return matchesText && matchesCaseId && matchesRole && matchesDate;
+    return matchesText && matchesCaseId && matchesFolder && matchesRole && matchesDate;
   });
 
   const buildTimeline = (item) => {
@@ -1101,7 +1346,7 @@ Evidence Immutability: CONFIRMED
         </div>
       )}
 
-      {/* Certificate Modal */}
+      {/* Certificate Model */}
       {showCertificateModal && certificateData && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1001, overflowY: 'auto', padding: '20px' }}>
           <div style={{ backgroundColor: '#1e1e1e', padding: '30px', borderRadius: '10px', border: '2px solid #555', maxWidth: '800px', width: '100%', maxHeight: '90vh', overflowY: 'auto', fontFamily: 'monospace' }}>
@@ -1247,29 +1492,50 @@ Evidence Immutability: CONFIRMED
           </p>
           {(userRole === 'investigator' || userRole === 'admin') && (
             <>
-              <input type="file" onChange={(e) => setFile(e.target.files[0])} style={{ marginBottom: '10px' }} />
-              {file && (
+              <input
+                type="file"
+                multiple
+                onChange={(e) => {
+                  const selectedFiles = Array.from(e.target.files || []);
+                  setBatchFiles(selectedFiles);
+                  setFile(selectedFiles[0] || null);
+                  if (selectedFiles.length !== 1) {
+                    setFileName('');
+                  }
+                }}
+                style={{ marginBottom: '10px' }}
+              />
+              {batchFiles.length > 0 && (
+                <div style={{ fontSize: '0.85rem', color: '#00ff9c', marginBottom: '10px' }}>
+                  Selected: {batchFiles.length} file{batchFiles.length > 1 ? 's' : ''} (SHA-256 auto-generated per file)
+                </div>
+              )}
+              {(file || batchFiles.length > 0) && (
                 <>
-                  <input 
-                    type="text" 
-                    placeholder="Edit filename (optional)"
-                    value={fileName}
-                    onChange={(e) => setFileName(e.target.value)}
-                    style={{ 
-                      width: '100%',
-                      padding: '8px 12px', 
-                      backgroundColor: '#1e1e1e', 
-                      border: '1px solid rgba(0,255,156,0.3)',
-                      borderRadius: '6px',
-                      color: '#ddd',
-                      fontSize: '0.9rem',
-                      marginBottom: '10px',
-                      boxSizing: 'border-box'
-                    }}
-                  />
-                  <div style={{ fontSize: '0.85rem', color: '#888', marginBottom: '10px' }}>
-                    Original: {file.name}
-                  </div>
+                  {batchFiles.length === 1 && file && (
+                    <>
+                      <input 
+                        type="text" 
+                        placeholder="Edit filename (optional)"
+                        value={fileName}
+                        onChange={(e) => setFileName(e.target.value)}
+                        style={{ 
+                          width: '100%',
+                          padding: '8px 12px', 
+                          backgroundColor: '#1e1e1e', 
+                          border: '1px solid rgba(0,255,156,0.3)',
+                          borderRadius: '6px',
+                          color: '#ddd',
+                          fontSize: '0.9rem',
+                          marginBottom: '10px',
+                          boxSizing: 'border-box'
+                        }}
+                      />
+                      <div style={{ fontSize: '0.85rem', color: '#888', marginBottom: '10px' }}>
+                        Original: {file.name}
+                      </div>
+                    </>
+                  )}
                   <input
                     type="text"
                     placeholder="Case ID"
@@ -1287,6 +1553,67 @@ Evidence Immutability: CONFIRMED
                       boxSizing: 'border-box'
                     }}
                   />
+                  <select
+                    value={selectedCaseFolder}
+                    onChange={(e) => {
+                      const folder = e.target.value;
+                      setSelectedCaseFolder(folder);
+                      if (!caseId.trim() && folder) {
+                        setCaseId(folder);
+                      }
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '8px 12px',
+                      backgroundColor: '#1e1e1e',
+                      border: '1px solid rgba(0,255,156,0.3)',
+                      borderRadius: '6px',
+                      color: '#ddd',
+                      fontSize: '0.9rem',
+                      marginBottom: '10px',
+                      boxSizing: 'border-box'
+                    }}
+                  >
+                    <option value="">Select existing Case Folder (optional)</option>
+                    {allCaseFolders.map((folder) => (
+                      <option key={folder} value={folder}>{folder}</option>
+                    ))}
+                  </select>
+                  <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+                    <input
+                      type="text"
+                      placeholder="Create new Case Folder"
+                      value={newCaseFolderName}
+                      onChange={(e) => setNewCaseFolderName(e.target.value)}
+                      style={{
+                        flex: 1,
+                        padding: '8px 12px',
+                        backgroundColor: '#1e1e1e',
+                        border: '1px solid rgba(0,255,156,0.3)',
+                        borderRadius: '6px',
+                        color: '#ddd',
+                        fontSize: '0.9rem',
+                        boxSizing: 'border-box'
+                      }}
+                    />
+                    <button
+                      onClick={createCaseFolder}
+                      type="button"
+                      style={{
+                        backgroundColor: '#00ff9c',
+                        color: 'black',
+                        padding: '8px 12px',
+                        border: 'none',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        fontWeight: 'bold',
+                        fontSize: '0.85rem',
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      + Folder
+                    </button>
+                  </div>
                   <input
                     type="text"
                     placeholder="Investigator Name"
@@ -1366,17 +1693,33 @@ Evidence Immutability: CONFIRMED
               <br />
               <button 
                 onClick={uploadToBlockchain} 
-                disabled={!file}
+                disabled={batchFiles.length !== 1}
                 style={{ 
-                  backgroundColor: file ? '#2da23d' : '#afb5b590', 
+                  backgroundColor: batchFiles.length === 1 ? '#2da23d' : '#afb5b590', 
                   color: 'black', padding: '10px 20px', 
                   border: 'none', borderRadius: '5px', 
-                  cursor: file ? 'pointer' : 'not-allowed',
+                  cursor: batchFiles.length === 1 ? 'pointer' : 'not-allowed',
                   fontWeight: 'bold',
                   marginRight: '10px'
                 }}
               >
                 Secure Evidence
+              </button>
+              <button
+                onClick={uploadBatchToBlockchain}
+                disabled={!batchFiles.length}
+                style={{
+                  backgroundColor: batchFiles.length ? '#00bfff' : '#afb5b590',
+                  color: 'black',
+                  padding: '10px 20px',
+                  border: 'none',
+                  borderRadius: '5px',
+                  cursor: batchFiles.length ? 'pointer' : 'not-allowed',
+                  fontWeight: 'bold',
+                  marginRight: '10px'
+                }}
+              >
+                Batch Upload
               </button>
               {userRole === 'investigator' && (
                 <button 
@@ -1578,32 +1921,50 @@ Evidence Immutability: CONFIRMED
 
           {/* Statistics Dashboard */}
           {adminTab === 'dashboard' && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
-              <div style={{ border: '1px solid rgba(0,255,156,0.2)', padding: '15px', borderRadius: '6px', backgroundColor: 'rgba(18, 18, 18, 0.5)', textAlign: 'center' }}>
-                <p style={{ margin: '0 0 8px 0', fontSize: '0.85rem', color: '#00ff9c', fontWeight: 600 }}>Total Evidence</p>
-                <p style={{ margin: 0, fontSize: '2rem', color: '#00ff9c', fontWeight: 'bold' }}>{filteredHistory.length}</p>
+            <>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
+                <div style={{ border: '1px solid rgba(0,255,156,0.2)', padding: '15px', borderRadius: '6px', backgroundColor: 'rgba(18, 18, 18, 0.5)', textAlign: 'center' }}>
+                  <p style={{ margin: '0 0 8px 0', fontSize: '0.85rem', color: '#00ff9c', fontWeight: 600 }}>Total Evidence</p>
+                  <p style={{ margin: 0, fontSize: '2rem', color: '#00ff9c', fontWeight: 'bold' }}>{filteredHistory.length}</p>
+                </div>
+                <div style={{ border: '1px solid rgba(0,255,156,0.2)', padding: '15px', borderRadius: '6px', backgroundColor: 'rgba(18, 18, 18, 0.5)', textAlign: 'center' }}>
+                  <p style={{ margin: '0 0 8px 0', fontSize: '0.85rem', color: '#00ff9c', fontWeight: 600 }}>Total Users</p>
+                  <p style={{ margin: 0, fontSize: '2rem', color: '#00ff9c', fontWeight: 'bold' }}>{Object.entries(users).length}</p>
+                </div>
+                <div style={{ border: '1px solid rgba(0,255,156,0.2)', padding: '15px', borderRadius: '6px', backgroundColor: 'rgba(18, 18, 18, 0.5)', textAlign: 'center' }}>
+                  <p style={{ margin: '0 0 8px 0', fontSize: '0.85rem', color: '#00ff9c', fontWeight: 600 }}>Total Transfers</p>
+                  <p style={{ margin: 0, fontSize: '2rem', color: '#00ff9c', fontWeight: 'bold' }}>{localHistory.filter(item => item.name?.includes('Transfer')).length}</p>
+                </div>
+                <div style={{ border: '1px solid rgba(0,255,156,0.2)', padding: '15px', borderRadius: '6px', backgroundColor: 'rgba(18, 18, 18, 0.5)', textAlign: 'center' }}>
+                  <p style={{ margin: '0 0 8px 0', fontSize: '0.85rem', color: '#00ff9c', fontWeight: 600 }}>Storage Used</p>
+                  <p style={{ margin: 0, fontSize: '1.5rem', color: '#00ff9c', fontWeight: 'bold' }}>{(totalStorageUsed / 1024).toFixed(2)} MB</p>
+                </div>
+                <div style={{ border: '1px solid rgba(0,255,156,0.2)', padding: '15px', borderRadius: '6px', backgroundColor: 'rgba(18, 18, 18, 0.5)', textAlign: 'center' }}>
+                  <p style={{ margin: '0 0 8px 0', fontSize: '0.85rem', color: '#00ff9c', fontWeight: 600 }}>Audit Entries</p>
+                  <p style={{ margin: 0, fontSize: '2rem', color: '#00ff9c', fontWeight: 'bold' }}>{auditLog.length}</p>
+                </div>
+                <div style={{ border: '1px solid rgba(0,255,156,0.2)', padding: '15px', borderRadius: '6px', backgroundColor: 'rgba(18, 18, 18, 0.5)', textAlign: 'center' }}>
+                  <p style={{ margin: '0 0 8px 0', fontSize: '0.85rem', color: '#00ff9c', fontWeight: 600 }}>System Status</p>
+                  <p style={{ margin: 0, fontSize: '1.2rem', color: '#00ff9c', fontWeight: 'bold' }}>Operational</p>
+                </div>
               </div>
-              <div style={{ border: '1px solid rgba(0,255,156,0.2)', padding: '15px', borderRadius: '6px', backgroundColor: 'rgba(18, 18, 18, 0.5)', textAlign: 'center' }}>
-                <p style={{ margin: '0 0 8px 0', fontSize: '0.85rem', color: '#00ff9c', fontWeight: 600 }}>Total Users</p>
-                <p style={{ margin: 0, fontSize: '2rem', color: '#00ff9c', fontWeight: 'bold' }}>{Object.entries(users).length}</p>
+
+              <div style={{ marginTop: '20px', border: '1px solid rgba(0,255,156,0.2)', borderRadius: '6px', padding: '12px', backgroundColor: 'rgba(18, 18, 18, 0.5)' }}>
+                <h3 style={{ margin: '0 0 10px 0', color: '#00ff9c' }}>Case Readiness Score</h3>
+                {readinessByCase.length > 0 ? (
+                  readinessByCase.map((row) => (
+                    <div key={row.caseId} style={{ borderBottom: '1px solid rgba(0,255,156,0.1)', padding: '10px 0', fontSize: '0.85rem' }}>
+                      <p style={{ margin: '0 0 4px 0', color: '#ddd', fontWeight: 700 }}>{row.caseId} — {row.score}%</p>
+                      <p style={{ margin: 0, color: '#9aa' }}>
+                        Evidence: {row.totalEvidence} | Metadata: {row.metadataComplete}/{row.totalEvidence} | SHA-256: {row.shaPresent}/{row.totalEvidence} | CID: {row.cidPresent}/{row.totalEvidence} | Cert: {row.certGenerated}/{row.totalEvidence}
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                  <p style={{ color: '#888', margin: 0 }}>No case folders or case-tagged records available yet.</p>
+                )}
               </div>
-              <div style={{ border: '1px solid rgba(0,255,156,0.2)', padding: '15px', borderRadius: '6px', backgroundColor: 'rgba(18, 18, 18, 0.5)', textAlign: 'center' }}>
-                <p style={{ margin: '0 0 8px 0', fontSize: '0.85rem', color: '#00ff9c', fontWeight: 600 }}>Total Transfers</p>
-                <p style={{ margin: 0, fontSize: '2rem', color: '#00ff9c', fontWeight: 'bold' }}>{localHistory.filter(item => item.name?.includes('Transfer')).length}</p>
-              </div>
-              <div style={{ border: '1px solid rgba(0,255,156,0.2)', padding: '15px', borderRadius: '6px', backgroundColor: 'rgba(18, 18, 18, 0.5)', textAlign: 'center' }}>
-                <p style={{ margin: '0 0 8px 0', fontSize: '0.85rem', color: '#00ff9c', fontWeight: 600 }}>Storage Used</p>
-                <p style={{ margin: 0, fontSize: '1.5rem', color: '#00ff9c', fontWeight: 'bold' }}>{(totalStorageUsed / 1024).toFixed(2)} MB</p>
-              </div>
-              <div style={{ border: '1px solid rgba(0,255,156,0.2)', padding: '15px', borderRadius: '6px', backgroundColor: 'rgba(18, 18, 18, 0.5)', textAlign: 'center' }}>
-                <p style={{ margin: '0 0 8px 0', fontSize: '0.85rem', color: '#00ff9c', fontWeight: 600 }}>Audit Entries</p>
-                <p style={{ margin: 0, fontSize: '2rem', color: '#00ff9c', fontWeight: 'bold' }}>{auditLog.length}</p>
-              </div>
-              <div style={{ border: '1px solid rgba(0,255,156,0.2)', padding: '15px', borderRadius: '6px', backgroundColor: 'rgba(18, 18, 18, 0.5)', textAlign: 'center' }}>
-                <p style={{ margin: '0 0 8px 0', fontSize: '0.85rem', color: '#00ff9c', fontWeight: 600 }}>System Status</p>
-                <p style={{ margin: 0, fontSize: '1.2rem', color: '#00ff9c', fontWeight: 'bold' }}>Operational</p>
-              </div>
-            </div>
+            </>
           )}
 
           {/* User Management */}
@@ -1787,6 +2148,24 @@ Evidence Immutability: CONFIRMED
           <button onClick={fetchHistory} style={{ marginBottom: 0, padding: '8px 12px', fontSize: '12px', cursor: 'pointer' }}>Force Refresh</button>
         </div>
         <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
+          <select
+            value={filterCaseFolder}
+            onChange={(e) => setFilterCaseFolder(e.target.value)}
+            style={{
+              flex: '1 1 180px',
+              padding: '8px 12px',
+              backgroundColor: '#1e1e1e',
+              border: '1px solid rgba(0,255,156,0.3)',
+              borderRadius: '6px',
+              color: '#ddd',
+              fontSize: '0.9rem'
+            }}
+          >
+            <option value="">All Case Folders</option>
+            {allCaseFolders.map((folder) => (
+              <option key={folder} value={folder}>{folder}</option>
+            ))}
+          </select>
           <input
             type="text"
             placeholder="Filter by Case ID"
@@ -1849,6 +2228,35 @@ Evidence Immutability: CONFIRMED
             }}
           />
         </div>
+        {allCaseFolders.length > 0 && (
+          <div style={{ marginBottom: '15px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            {allCaseFolders.map((folder) => {
+              const isActive = filterCaseFolder.toLowerCase() === folder.toLowerCase();
+              return (
+                <span
+                  key={folder}
+                  onClick={() => setFilterCaseFolder(isActive ? '' : folder)}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    padding: '4px 10px',
+                    border: `1px solid ${isActive ? '#17cd6c' : '#0b7a3f'}`,
+                    borderRadius: '4px',
+                    backgroundColor: 'transparent',
+                    color: '#17cd6c',
+                    cursor: 'pointer',
+                    fontSize: '0.9rem',
+                    fontWeight: isActive ? 700 : 500,
+                    lineHeight: 1.2,
+                    textDecoration: 'none'
+                  }}
+                >
+                  {folder} ({caseFolderCounts[folder] || 0})
+                </span>
+              );
+            })}
+          </div>
+        )}
         
         <style>{`
           div::-webkit-scrollbar {
@@ -1856,36 +2264,63 @@ Evidence Immutability: CONFIRMED
           }
           button.view-button {
             display: inline-block;
-            background-color: #00ff9c !important;
-            color: white !important;
+            background: none !important;
+            background-image: none !important;
+            background-color: transparent !important;
+            color: #00ff9c !important;
             text-decoration: none;
             font-weight: bold;
             font-size: 0.85rem;
-            padding: 4px 12px !important;
-            border: 1px solid #00ff9c !important;
-            border-radius: 3px;
+            padding: 0 !important;
+            border: none !important;
+            border-radius: 0;
+            box-shadow: none !important;
+            filter: none !important;
+            transform: none !important;
+            transition: none !important;
+            outline: none !important;
             cursor: pointer;
             -webkit-appearance: none;
             appearance: none;
             margin: 0;
           }
           button.view-button:hover {
-            background-color: #666 !important;
+            background: none !important;
+            background-color: transparent !important;
+            box-shadow: none !important;
+            transform: none !important;
+            text-decoration: underline;
+          }
+          button.view-button:focus,
+          button.view-button:focus-visible {
+            outline: none !important;
+            box-shadow: none !important;
           }
           a.view-button {
             display: inline-block;
-            background-color: #00ff9c !important;
-            color: white !important;
+            background: none !important;
+            background-image: none !important;
+            background-color: transparent !important;
+            color: #00ff9c !important;
             text-decoration: none;
             font-weight: bold;
             font-size: 0.85rem;
-            padding: 4px 12px;
-            border: 1px solid #666 !important;
-            border-radius: 3px;
+            padding: 0;
+            border: none !important;
+            border-radius: 0;
+            box-shadow: none !important;
+            filter: none !important;
+            transform: none !important;
+            transition: none !important;
+            outline: none !important;
             cursor: pointer;
           }
           a.view-button:hover {
-            background-color: #00ff9c !important;
+            background: none !important;
+            background-color: transparent !important;
+            box-shadow: none !important;
+            transform: none !important;
+            text-decoration: underline;
           }
         `}</style>
         
@@ -1918,7 +2353,7 @@ Evidence Immutability: CONFIRMED
                     <code style={{ fontSize: '10px', color: '#aaa', wordBreak: 'break-all' }}>{item.hash}</code>
                     <button 
                       onClick={() => copyToClipboard(item.hash)}
-                      style={{ marginLeft: '10px', marginRight: '8px', fontSize: '10px', padding: '2px 5px', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                      style={{ marginLeft: '10px', marginRight: '8px', fontSize: '10px', padding: 0, border: 'none', background: 'transparent', color: '#00ff9c', cursor: 'pointer', whiteSpace: 'nowrap' }}
                     >
                       Copy
                     </button>
@@ -1934,7 +2369,7 @@ Evidence Immutability: CONFIRMED
                         setTimelineItem(item);
                         setShowTimelineModal(true);
                       }}
-                      style={{ marginTop: '6px', fontSize: '10px', padding: '2px 6px', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                      style={{ marginTop: '6px', fontSize: '10px', padding: 0, border: 'none', background: 'transparent', color: '#00ff9c', cursor: 'pointer', whiteSpace: 'nowrap' }}
                     >
                       Timeline
                     </button>

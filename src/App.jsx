@@ -1455,7 +1455,25 @@ Evidence Immutability: CONFIRMED
       <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', borderBottom: `2px solid ${isDarkMode ? 'rgba(0,255,156,0.3)' : 'rgba(0,140,58,0.3)'}`, paddingBottom: '20px' }}>
         <div>
-          <h1 style={{ margin: 0, marginBottom: '10px', fontSize: '2.5em', fontWeight: 700, letterSpacing: '1px' }}>Evidence Management System</h1>
+          <h1
+            style={{
+              margin: 0,
+              marginBottom: '10px',
+              fontSize: '2.65em',
+              fontWeight: 800,
+              letterSpacing: '3px',
+              textTransform: 'uppercase',
+              lineHeight: 1.05,
+              fontFamily: '"Segoe UI", "Trebuchet MS", sans-serif',
+              color: '#ffffffb3',
+              opacity: 0.88,
+              textShadow: isDarkMode
+                ? '0 0 18px rgba(0,255,156,0.25), 0 0 2px rgba(0,255,156,0.65)'
+                : '0 1px 0 rgba(255,255,255,0.65), 0 3px 8px rgba(0,90,40,0.2)'
+            }}
+          >
+            Evidence Management System
+          </h1>
           <div style={{ height: '3px', width: '100%', background: `linear-gradient(90deg, ${accentColor}, transparent)`, borderRadius: '2px' }}></div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>

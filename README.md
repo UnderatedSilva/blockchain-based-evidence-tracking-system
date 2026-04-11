@@ -4,7 +4,9 @@
 
 This project is a decentralized web application designed to maintain a transparent, tamper-proof, and verifiable record of digital evidence. By combining **Ethereum Smart Contracts**, **IPFS**, and **SHA-256 Hashing**, it ensures that forensic evidence remains admissible in court by preventing unauthorized modifications and manual logging errors.
 
- 
+
+
+<img width="4000" height="3000" alt="V3Irsd7od" src="https://github.com/user-attachments/assets/bea3ecb9-c124-4a91-b2f1-2e98d9a1fbb8" />
 
 ---
 

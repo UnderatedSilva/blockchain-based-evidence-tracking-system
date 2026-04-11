@@ -10,23 +10,19 @@ This project is a decentralized web application designed to maintain a transpare
 
 ## ✨ Key Features
 
-* 
-**✅ Immutable Chain of Custody:** Every upload, transfer, and access event is permanently recorded on the Ethereum blockchain.
+* **✅ Immutable Chain of Custody:** Every upload, transfer, and access event is permanently recorded on the Ethereum blockchain.
 
 
 * **✅ Cryptographic Integrity Verification:** Uses **SHA-256** to create a unique digital fingerprint for every file. The system automatically detects if even a single bit of evidence has been altered.
 
 
-* 
-**✅ Decentralized Storage:** Actual evidence files are stored on **IPFS** (InterPlanetary File System), ensuring high availability and resilience against single points of failure.
+* **✅ Decentralized Storage:** Actual evidence files are stored on **IPFS** (InterPlanetary File System), ensuring high availability and resilience against single points of failure.
 
 
-* 
-**✅ Role-Based Access Control (RBAC):** Distinct permissions for **Administrators**, **Forensic Investigators**, and **Auditors**.
+* **✅ Role-Based Access Control (RBAC):** Distinct permissions for **Administrators**, **Forensic Investigators**, and **Auditors**.
 
 
-* 
-**✅ Automated Audit Trails:** Generates comprehensive, timestamped logs for forensic reporting and legal admissibility.
+* **✅ Automated Audit Trails:** Generates comprehensive, timestamped logs for forensic reporting and legal admissibility.
 
 
 
@@ -34,24 +30,19 @@ This project is a decentralized web application designed to maintain a transpare
 
 ## 🛠️ Tech Stack
 
-* 
-**Frontend:** React.js + Vite (User-friendly Forensic Dashboard) 
+* **Frontend:** React.js + Vite (User-friendly Forensic Dashboard) 
 
 
-* 
-**Blockchain:** Solidity + Ethereum (Sepolia/Ganache Testnets) 
+* **Blockchain:** Solidity + Ethereum (Sepolia/Ganache Testnets) 
 
 
-* 
-**Storage:** IPFS (Distributed File Storage) 
+* **Storage:** IPFS (Distributed File Storage) 
 
 
-* 
-**Authentication:** MetaMask (Blockchain-based Identity) 
+* **Authentication:** MetaMask (Blockchain-based Identity) 
 
 
-* 
-**Library:** Ethers.js / Web3.js (Blockchain Interaction) 
+* **Library:** Ethers.js / Web3.js (Blockchain Interaction) 
 
 
 
@@ -63,8 +54,7 @@ This project is a decentralized web application designed to maintain a transpare
 
 * **Node.js** installed
 * **MetaMask** browser extension
-* 
-**Ganache** (for local blockchain testing) 
+* **Ganache** (for local blockchain testing) 
 
 
 
@@ -105,20 +95,16 @@ npm run dev
 
 The system uses a layered architecture to separate concerns and maximize security:
 
-1. 
-**Application Layer:** React.js frontend for investigator interaction.
+1. **Application Layer:** React.js frontend for investigator interaction.
 
 
-2. 
-**Logic Layer:** Node.js/Web3.js for hashing and IPFS coordination.
+2. **Logic Layer:** Node.js/Web3.js for hashing and IPFS coordination.
 
 
-3. 
-**Blockchain Layer:** Solidity Smart Contracts for immutable record keeping.
+3. **Blockchain Layer:** Solidity Smart Contracts for immutable record keeping.
 
 
-4. 
-**Storage Layer:** IPFS for secure, decentralized file retention.
+4. **Storage Layer:** IPFS for secure, decentralized file retention.
 
 
 
@@ -126,16 +112,13 @@ The system uses a layered architecture to separate concerns and maximize securit
 
 ## 📜 Academic Context
 
-* 
-**Degree:** BSc (Hons) Computer Security 
+* **Degree:** BSc (Hons) Computer Security 
 
 
-* 
-**University:** University of Plymouth 
+* **University:** University of Plymouth 
 
 
-* 
-**Supervisor:** Dr. Pabudi Abeyrathne 
+* **Supervisor:** Dr. Pabudi Abeyrathne 
 
 
 

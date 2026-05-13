@@ -57,8 +57,6 @@ Your wallet interface should now reflect that you are connected to the **Sepolia
 Transactions on the Sepolia network require **Gas Fees**, paid in Sepolia ETH. These have no real-world monetary value.
 
 1. Visit a reputable faucet — such as one of the following:
-   - [Alchemy Sepolia Faucet](https://sepoliafaucet.com)
-   - [Infura Faucet](https://www.infura.io/faucet/sepolia)
    - [Google Cloud Web3 Faucet](https://cloud.google.com/application/web3/faucet/ethereum/sepolia)
 2. Copy your MetaMask wallet address by clicking your account name at the top of the extension.
 3. Paste the address into the faucet's input field and complete the **"I am not a robot"** verification.
@@ -80,3 +78,5 @@ Transactions on the Sepolia network require **Gas Fees**, paid in Sepolia ETH. T
 ---
 
 *For further technical detail, refer to the system design documentation.*
+<img width="4000" height="3000" alt="V3Irsd7od" src="https://github.com/user-attachments/assets/61b8f004-7d40-4348-a10b-69a3d29e407f" />
+

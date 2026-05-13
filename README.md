@@ -74,7 +74,7 @@ Transactions on the Sepolia network require **Gas Fees**, paid in Sepolia ETH. T
 |---|--------|-------------|
 | **1** | **Launch** | Access the application via the provided local or hosted URL. |
 | **2** | **Connect** | Click the **"Connect Wallet"** button. MetaMask will prompt for a signature to link the wallet to the session. |
-| **3** | **Upload** | Use the drag-and-drop interface to select a forensic file. Ensure the file does not exceed the size limits specified in the system design. |
+| **3** | **Upload** | Use the choose file interface to select a forensic file. Ensure the file does not exceed the size limits specified in the system design. |
 | **4** | **Confirm** | Review the generated **SHA-256 hash** and click **"Confirm to Blockchain"**. |
 | **5** | **Verify** | To check a file's integrity later, navigate to the **"Verify Evidence"** tab, upload the file again, and the system will cross-reference the live hash against the record stored on the Sepolia ledger. |
 

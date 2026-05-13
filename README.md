@@ -1,133 +1,85 @@
-# 🔍 Forensic Chain: Blockchain-Based Evidence Tracking System
+# 📋 User Guide & Platform Specification
 
-> **Securing Forensic Integrity & Immutable Chain of Custody**
-
-This project is a decentralized web application designed to maintain a transparent, tamper-proof, and verifiable record of digital evidence. By combining **Ethereum Smart Contracts**, **IPFS**, and **SHA-256 Hashing**, it ensures that forensic evidence remains admissible in court by preventing unauthorized modifications and manual logging errors.
-
-
-
-<img width="4000" height="3000" alt="V3Irsd7od" src="https://github.com/user-attachments/assets/bea3ecb9-c124-4a91-b2f1-2e98d9a1fbb8" />
+> Setup, configuration, and operating instructions for the forensic evidence dApp.
 
 ---
 
-## ✨ Key Features
+## 📌 Table of Contents
 
-* **✅ Immutable Chain of Custody:** Every upload, transfer, and access event is permanently recorded on the Ethereum blockchain.
-
-
-* **✅ Cryptographic Integrity Verification:** Uses **SHA-256** to create a unique digital fingerprint for every file. The system automatically detects if even a single bit of evidence has been altered.
-
-
-* **✅ Decentralized Storage:** Actual evidence files are stored on **IPFS** (InterPlanetary File System), ensuring high availability and resilience against single points of failure.
-
-
-* **✅ Role-Based Access Control (RBAC):** Distinct permissions for **Administrators**, **Forensic Investigators**, and **Auditors**.
-
-
-* **✅ Automated Audit Trails:** Generates comprehensive, timestamped logs for forensic reporting and legal admissibility.
-
-
+- [Minimum Platform Specification](#-minimum-platform-specification)
+- [Initial Environment Setup](#-initial-environment-setup)
+  - [Step 1 – Installing MetaMask](#step-1--installing-metamask)
+  - [Step 2 – Enabling the Sepolia Test Network](#step-2--enabling-the-sepolia-test-network)
+  - [Step 3 – Obtaining Test ETH (Faucet)](#step-3--obtaining-test-eth-faucet)
+- [Operating the Application](#-operating-the-application)
 
 ---
 
-## 🛠️ Tech Stack
+## 🖥️ Minimum Platform Specification
 
-* **Frontend:** React.js + Vite (User-friendly Forensic Dashboard) 
-
-
-* **Blockchain:** Solidity + Ethereum (Sepolia/Ganache Testnets) 
-
-
-* **Storage:** IPFS (Distributed File Storage) 
-
-
-* **Authentication:** MetaMask (Blockchain-based Identity) 
-
-
-* **Library:** Ethers.js / Web3.js (Blockchain Interaction) 
-
-
+| Requirement | Details |
+|-------------|---------|
+| **Operating System** | Windows 10/11, macOS, or Linux |
+| **Browser** | Google Chrome, Brave, or Firefox *(MetaMask extension support required)* |
+| **Internet** | Stable connection for blockchain synchronisation |
+| **Software** | MetaMask Browser Extension |
 
 ---
 
-## 🏃 Getting Started
+## ⚙️ Initial Environment Setup
 
-### 1. Prerequisites
+### Step 1 – Installing MetaMask
 
-* **Node.js** installed
-* **MetaMask** browser extension
-* **Ganache** (for local blockchain testing) 
+1. Navigate to the official MetaMask website at [metamask.io](https://metamask.io) or the [Chrome Web Store](https://chrome.google.com/webstore).
+2. Select **"Add to Chrome"** (or your respective browser) and confirm the installation.
+3. Click **"Create a new wallet"** and follow the on-screen instructions to set up a password.
+4. Securely store the **Secret Recovery Phrase**. For testing purposes, a dedicated development-only wallet is recommended.
 
-
-
-### 2. Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/your-username/forensic-chain.git
-
-# Enter the directory
-cd forensic-chain
-
-# Install dependencies
-npm install
-
-```
-
-### 3. Setup Environment Variables
-
-Create a `.env` file in the root directory:
-
-```text
-VITE_CONTRACT_ADDRESS=your_smart_contract_address
-VITE_PINATA_JWT=your_ipfs_gateway_token
-
-```
-
-### 4. Run the App
-
-```bash
-npm run dev
-
-```
+> [!WARNING]
+> **Never share your Secret Recovery Phrase with anyone.** Store it offline in a secure location. Your funds can be permanently lost if this phrase is compromised.
 
 ---
 
-## 📂 System Architecture
+### Step 2 – Enabling the Sepolia Test Network
 
-The system uses a layered architecture to separate concerns and maximize security:
+By default, MetaMask may hide test networks. To enable Sepolia:
 
-1. **Application Layer:** React.js frontend for investigator interaction.
+1. Open the MetaMask extension and click the **Network Selector** button (top-left corner).
+2. Toggle the switch labelled **"Show test networks"** to **ON**.
+3. From the dropdown list, select **"Sepolia"**.
 
-
-2. **Logic Layer:** Node.js/Web3.js for hashing and IPFS coordination.
-
-
-3. **Blockchain Layer:** Solidity Smart Contracts for immutable record keeping.
-
-
-4. **Storage Layer:** IPFS for secure, decentralized file retention.
-
-
+Your wallet interface should now reflect that you are connected to the **Sepolia Test Network**.
 
 ---
 
-## 📜 Academic Context
+### Step 3 – Obtaining Test ETH (Faucet)
 
-* **Degree:** BSc (Hons) Computer Security 
+Transactions on the Sepolia network require **Gas Fees**, paid in Sepolia ETH. These have no real-world monetary value.
+
+1. Visit a reputable faucet — such as one of the following:
+   - [Google Cloud Web3 Faucet](https://cloud.google.com/application/web3/faucet/ethereum/sepolia)
+2. Copy your MetaMask wallet address by clicking your account name at the top of the extension.
+3. Paste the address into the faucet's input field and complete the **"I am not a robot"** verification.
+4. Click **"Send Me ETH"**.
+5. Wait approximately **30–60 seconds** — your MetaMask balance should update to reflect the received test funds.
+
+---
+
+## 🚀 Operating the Application
+| Role passwords : <br><br>
+<img width="440" height="141" alt="image" src="https://github.com/user-attachments/assets/407680d8-afb4-4463-90aa-b370006a08d4" />
 
 
-* **University:** University of Plymouth 
-
-
-* **Supervisor:** Dr. Pabudi Abeyrathne 
-
-
+| # | Action | Description |
+|---|--------|-------------|
+| **1** | **Launch** | Access the application via the provided local or hosted URL. |
+| **2** | **Connect** | Click the **"Connect Wallet"** button. MetaMask will prompt for a signature to link the wallet to the session. |
+| **3** | **Upload** | Use the choose file interface to select a forensic file. Ensure the file does not exceed the size limits specified in the system design. |
+| **4** | **Confirm** | Review the generated **SHA-256 hash** and click **"Confirm to Blockchain"**. |
+| **5** | **Verify** | To check a file's integrity later, navigate to the **"Verify Evidence"** tab, upload the file again, and the system will cross-reference the live hash against the record stored on the Sepolia ledger. |
 
 ---
 
-## 🛡️ Security Disclaimer
 
-This project is a functional prototype developed for academic evaluation and is not intended for use in real-world criminal investigations without further professional auditing.
+<img width="4000" height="3000" alt="V3Irsd7od" src="https://github.com/user-attachments/assets/61b8f004-7d40-4348-a10b-69a3d29e407f" />
 
----

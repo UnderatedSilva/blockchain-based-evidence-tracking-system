@@ -1,3 +1,5 @@
+<img width="1185" height="1200" alt="evidence_management_poster 1" src="https://github.com/user-attachments/assets/a3293af7-0c30-4999-a33b-883a7f72da4b" />
+
 # 📋 User Guide & Platform Specification
 
 > Setup, configuration, and operating instructions for the forensic evidence dApp.

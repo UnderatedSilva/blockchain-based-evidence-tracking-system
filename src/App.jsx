@@ -1474,7 +1474,7 @@ Evidence Immutability: CONFIRMED
           >
             Evidence Management System
           </h1>
-          <div style={{ height: '3px', width: '100%', background: `linear-gradient(90deg, ${accentColor}, transparent)`, borderRadius: '2px' }}></div>
+        <div style={{ height: '3px', width: '100%', background: `linear-gradient(90deg, ${accentColor}, transparent)`, borderRadius: '2px' }}></div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
           <span style={{ fontSize: '0.85rem', color: '#00ff9c', fontWeight: 600, padding: '5px 10px', border: '1px solid rgba(0,255,156,0.3)', borderRadius: '5px' }}>

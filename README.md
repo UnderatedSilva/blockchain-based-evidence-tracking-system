@@ -66,6 +66,9 @@ Transactions on the Sepolia network require **Gas Fees**, paid in Sepolia ETH. T
 ---
 
 ## 🚀 Operating the Application
+| Role passwords : <br><br>
+<img width="440" height="141" alt="image" src="https://github.com/user-attachments/assets/407680d8-afb4-4463-90aa-b370006a08d4" />
+
 
 | # | Action | Description |
 |---|--------|-------------|
@@ -77,6 +80,6 @@ Transactions on the Sepolia network require **Gas Fees**, paid in Sepolia ETH. T
 
 ---
 
-*For further technical detail, refer to the system design documentation.*
+
 <img width="4000" height="3000" alt="V3Irsd7od" src="https://github.com/user-attachments/assets/61b8f004-7d40-4348-a10b-69a3d29e407f" />
 

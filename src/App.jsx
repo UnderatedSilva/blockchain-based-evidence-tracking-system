@@ -176,7 +176,6 @@ function App() {
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
   };
-
   // Save localHistory to localStorage whenever it changes
   useEffect(() => {
     try {
@@ -187,12 +186,12 @@ function App() {
     }
   }, [localHistory]);
 
-  // Save users to localStorage whenever it changes
+  // Save users to localStorage when the thing change
   useEffect(() => {
     localStorage.setItem('users', JSON.stringify(users));
   }, [users]);
 
-  // Save audit log to localStorage whenever it changes
+  // Save audit log to local storage
   useEffect(() => {
     localStorage.setItem('auditLog', JSON.stringify(auditLog));
   }, [auditLog]);
@@ -234,7 +233,7 @@ function App() {
     });
   };
 
-  // 1. IMPROVED: Fetch from the mapping 'evidenceLog'
+  //  Fetch from the mapping 'evidenceLog'
   const fetchHistory = async () => {
     if (!window.ethereum) return;
     try {
@@ -248,7 +247,6 @@ function App() {
       const total = await contract.evidenceCount();
       let items = [];
 
-      // Your contract uses evidenceCount starting from 1 (1-based index)
       for (let i = 1; i <= total; i++) {
         const data = await contract.evidenceLog(i);
         const meta = parseEvidenceDescription(data.description);
@@ -295,7 +293,7 @@ function App() {
         setRolePassword("");
         setRoleAuthError("");
       }
-      // Load per-wallet local history (if any)
+      // Load per-wallet local history ( IF THERE IS ANY)
       try {
         const saved = localStorage.getItem(`evidenceHistory_${address}`) || localStorage.getItem('evidenceHistory');
         if (saved) setLocalHistory(JSON.parse(saved));
@@ -310,7 +308,7 @@ function App() {
     }
   };
 
-  // 2. NEW: Copy to Clipboard Function
+  //  Copy to Clipboard Function
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
     alert("Hash copied to clipboard!");
